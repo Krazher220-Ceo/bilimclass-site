@@ -23,10 +23,14 @@
 
         {% if selected_subject %}
             <div class="mt-6 p-4 border rounded-lg shadow-sm">
-                <h2 class="text-lg font-semibold text-gray-700">Домашнее задание по {{ selected_subject }} ({{ "Есть завтра" if has_tomorrow else "Нет завтра" }}) :</h2>
+                <h2 class="text-lg font-semibold text-gray-700">Домашнее задание по {{ selected_subject }}:</h2>
                 <div class="mt-2 p-3 bg-gray-50 rounded-lg">
-                    {% if homework_today %}
-                        {{ homework_today }}
+                    {% if homeworks %}
+                        <ul class="list-disc pl-5">
+                            {% for hw in homeworks %}
+                                <li class="text-gray-700">{{ hw }}</li>
+                            {% endfor %}
+                        </ul>
                     {% else %}
                         <p class="text-gray-500">Нет домашнего задания.</p>
                     {% endif %}
@@ -37,8 +41,12 @@
         <div class="mt-6 p-4 border rounded-lg shadow-sm">
             <h2 class="text-lg font-semibold text-gray-700">Домашнее задание на вчера:</h2>
             <div class="mt-2 p-3 bg-gray-50 rounded-lg">
-                {% if homework_yesterday %}
-                    {{ homework_yesterday }}
+                {% if homeworks_yesterday %}
+                    <ul class="list-disc pl-5">
+                        {% for hw in homeworks_yesterday %}
+                            <li class="text-gray-700">{{ hw }}</li>
+                        {% endfor %}
+                    </ul>
                 {% else %}
                     <p class="text-gray-500">Нет домашнего задания.</p>
                 {% endif %}
