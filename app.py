@@ -4,34 +4,35 @@ from flask import Flask, render_template, request
 from datetime import datetime, timedelta
 
 app = Flask(__name__, template_folder="templates")
-app.config["DEBUG"] = True
 
-# 🔹 Получаем API-токен
+# 🔹 API-токен
 TOKEN = os.getenv("TOKEN")
 HEADERS = {"Authorization": f"Bearer {TOKEN}"}
 
-# 🔹 URL для получения расписания и ДЗ
+# 🔹 Данные для запроса
 SCHOOL_ID = "1006693"
 EDU_YEAR = "2024"
-STUDENT_SCHOOL_UUID = "9488dd4b-8ccd-44f5-bbf2-6c87a3278c9d"
+STUDENT_SCHOOL_UUID = "9488dd4b-8ccd-44f5-bbf2-6c87a3278c9d"  # ✅ Используем правильный UUID
 
+# 🔹 URL для расписания и ДЗ
 SCHEDULE_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/schedule?schoolId={SCHOOL_ID}&eduYear={EDU_YEAR}&studentSchoolUuid={STUDENT_SCHOOL_UUID}"
-HOMEWORK_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/homeworks/monthly/list?schoolId={SCHOOL_ID}&eduYear={EDU_YEAR}&studentGroupUuid={STUDENT_SCHOOL_UUID}"
+HOMEWORK_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/homeworks/monthly/list?schoolId={SCHOOL_ID}&eduYear={EDU_YEAR}&studentSchoolUuid={STUDENT_SCHOOL_UUID}"
 
 def get_schedule():
     """🔹 Получает расписание с API BilimClass"""
     response = requests.get(SCHEDULE_URL, headers=HEADERS)
-    print(f"🔍 Код ответа API (расписание): {response.status_code}")
-    print(f"🔍 Тело ответа API (расписание): {response.text}")  # Отладка
-
+    
+    print(f"🔍 Код ответа API (расписание): {response.status_code}")  # Отладка
+    print(f"🔍 Тело ответа API (расписание): {response.text}")  # Показываем JSON
+    
     try:
         data = response.json()
         if isinstance(data, dict) and "data" in data and "days" in data["data"]:
             schedule_list = []
             for day in data["data"]["days"]:
-                date = day["dateFormat"]  # Дата урока
-                for lesson in day["schedule"]:  # Проходим по урокам дня
-                    lesson["date"] = date  # Добавляем дату к уроку
+                print(f"📅 Дата: {day['dateFormat']} → Уроков: {len(day['schedule'])}")
+                for lesson in day["schedule"]:
+                    lesson["date"] = day["dateFormat"]
                     schedule_list.append(lesson)
             return schedule_list
     except Exception as e:
@@ -50,7 +51,6 @@ def get_homework():
     except Exception as e:
         print("❌ Ошибка при разборе JSON (ДЗ):", e)
     return []
-
 
 def match_homework(schedule, homeworks):
     """🔹 Сопоставляет расписание и ДЗ"""
@@ -93,7 +93,9 @@ def index():
 
     schedule_with_hw = match_homework(schedule, homeworks)
 
-    subjects = sorted(set(lesson["subjectName"] for lesson in schedule_with_hw if isinstance(lesson, dict)))
+    print("🔍 Расписание с ДЗ:", schedule_with_hw)  # ✅ Отладка перед ошибкой
+
+    subjects = sorted(set(lesson.get("subjectName", "❌ Без предмета") for lesson in schedule_with_hw if isinstance(lesson, dict)))
 
     selected_subject = request.form.get("subject")
     filtered_schedule = [lesson for lesson in schedule_with_hw if lesson.get("subjectName") == selected_subject] if selected_subject else schedule_with_hw
@@ -103,4 +105,5 @@ def index():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
 
