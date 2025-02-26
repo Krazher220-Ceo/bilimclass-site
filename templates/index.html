@@ -21,12 +21,18 @@
 
     {% if selected_subject %}
         <h2>📌 Расписание для: {{ selected_subject }}</h2>
-        <ul>
-            {% for task in schedule %}
-                <li><b>{{ task.date }}</b>: {{ task.theme }} - {{ task.body }}</li>
-            {% endfor %}
-        </ul>
     {% endif %}
+
+    <ul>
+        {% for lesson in schedule %}
+            <li>
+                <b>📅 {{ lesson.date }}</b><br>
+                <b>📖 {{ lesson.subjectName }}</b><br>
+                <b>📌 Тема:</b> {{ lesson.theme }}<br>
+                <b>📝 ДЗ:</b> {{ lesson.homework }}
+            </li>
+        {% endfor %}
+    </ul>
 
     <footer>
         <p>🚀 Made by <b>Krazher220</b></p>
@@ -34,3 +40,4 @@
 
 </body>
 </html>
+
