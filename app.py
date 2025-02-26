@@ -21,9 +21,9 @@ SCHEDULE_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/timetable/dail
 
 def get_homework():
     """🔹 Получает домашнее задание с API BilimClass"""
-    response = requests.get(HOMEWORK_URL, headers=get_headers())
-    
-    print("📌 Ответ API (ДЗ):", response.json())  # ДЛЯ ОТЛАДКИ
+    response = requests.get(HOMEWORK_URL, headers=HEADERS)
+
+    print("📌 Ответ API (ДЗ):", response.text)  # ВАЖНО: смотрим, что реально приходит
     
     try:
         data = response.json()
