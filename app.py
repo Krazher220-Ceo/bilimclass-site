@@ -21,13 +21,19 @@ SCHEDULE_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/timetable/dail
 
 def get_homework():
     """🔹 Получает домашнее задание с API BilimClass"""
+    response = requests.get(HOMEWORK_URL, headers=HEADERS)
+    
+    if response.status_code != 200:
+        print(f"❌ Ошибка: API вернул код {response.status_code}")
+        return []
+    
     try:
-        response = requests.get(HOMEWORK_URL, headers=HEADERS)
         data = response.json()
-        if isinstance(data, dict) and "data" in data:
+        if isinstance(data, dict) and "data" in data and isinstance(data["data"], list):
             return data["data"]
     except Exception as e:
         print("❌ Ошибка при разборе JSON (ДЗ):", e)
+    
     return []
 
 def get_schedule(date):
