@@ -97,8 +97,9 @@ def index():
     return render_template("index.html", subjects=subjects, schedule=filtered_schedule, selected_subject=selected_subject)
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 10000))  # ✅ Используем 10000 (порт Render)
     app.run(host="0.0.0.0", port=port)
+
 
 
 
