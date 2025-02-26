@@ -20,13 +20,22 @@ HOMEWORK_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/homeworks/mont
 def get_schedule():
     """🔹 Получает расписание с API BilimClass"""
     response = requests.get(SCHEDULE_URL, headers=HEADERS)
+    print(f"🔍 Код ответа API (расписание): {response.status_code}")
+    print(f"🔍 Тело ответа API (расписание): {response.text}")  # Отладка
+
     try:
         data = response.json()
-        print("🔍 Ответ API (расписание):", data)  # ✅ Выводим ответ API
-        if isinstance(data, dict) and "data" in data and isinstance(data["data"], list):
-            return data["data"]
+        if isinstance(data, dict) and "data" in data and "days" in data["data"]:
+            schedule_list = []
+            for day in data["data"]["days"]:
+                date = day["dateFormat"]  # Дата урока
+                for lesson in day["schedule"]:  # Проходим по урокам дня
+                    lesson["date"] = date  # Добавляем дату к уроку
+                    schedule_list.append(lesson)
+            return schedule_list
     except Exception as e:
         print("❌ Ошибка при разборе JSON (расписание):", e)
+
     return []
 
 def get_homework():
