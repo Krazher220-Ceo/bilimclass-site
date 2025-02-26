@@ -4,6 +4,7 @@ from flask import Flask, render_template, request
 from datetime import datetime, timedelta
 
 app = Flask(__name__, template_folder="templates")
+app.config["DEBUG"] = True
 
 # 🔹 Получаем API-токен
 TOKEN = os.getenv("TOKEN")
