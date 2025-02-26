@@ -40,13 +40,13 @@ def index():
     if not homeworks:
         return "❌ Ошибка: API не вернуло домашнее задание!", 500
 
-    subjects = {hw["subjectName"] for hw in homeworks if "subjectName" in hw}
+    subjects = sorted(set(hw["subjectName"] for hw in homeworks if "subjectName" in hw))
 
     today = datetime.today().strftime("%d.%m.%Y")
     yesterday = (datetime.today() - timedelta(days=1)).strftime("%d.%m.%Y")
 
-    homeworks_today = filter_homework_by_date(homeworks, today)
-    homeworks_yesterday = filter_homework_by_date(homeworks, yesterday)
+    homeworks_today = [hw["body"] for hw in homeworks if hw.get("date") == today]
+    homeworks_yesterday = [hw["body"] for hw in homeworks if hw.get("date") == yesterday]
 
     selected_subject = request.form.get("subject")
     filtered_homeworks = [hw for hw in homeworks if hw.get("subjectName") == selected_subject] if selected_subject else []
@@ -61,17 +61,5 @@ def index():
     )
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # ✅ По умолчанию порт 5000
+    port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
-
-
-
-
-
-
-
-
-
-
-
-
