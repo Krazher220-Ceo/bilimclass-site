@@ -7,15 +7,12 @@ app = Flask(__name__, template_folder="templates")
 
 # 🔹 API-токен
 TOKEN = os.getenv("TOKEN")
-if not TOKEN:
-    raise ValueError("❌ Ошибка: Переменная окружения TOKEN не установлена!")
-
 HEADERS = {"Authorization": f"Bearer {TOKEN}"}
 
 # 🔹 Данные для запроса
 SCHOOL_ID = "1006693"
 EDU_YEAR = "2024"
-STUDENT_GROUP_UUID = "2666df86-ee3e-4d22-aa76-052f3fedf057"  # ✅ Используем правильный UUID
+STUDENT_GROUP_UUID = "2666df86-ee3e-4d22-aa76-052f3fedf057"  # ✅ Новый UUID
 
 # 🔹 URL для расписания и ДЗ
 SCHEDULE_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/schedule?schoolId={SCHOOL_ID}&eduYear={EDU_YEAR}&studentGroupUuid={STUDENT_GROUP_UUID}"
@@ -23,39 +20,35 @@ HOMEWORK_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/homeworks/mont
 
 def get_schedule():
     """🔹 Получает расписание с API BilimClass"""
-    try:
-        response = requests.get(SCHEDULE_URL, headers=HEADERS)
-        response.raise_for_status()
-        data = response.json()
+    response = requests.get(SCHEDULE_URL, headers=HEADERS)
+    print(f"🔍 Код ответа API (расписание): {response.status_code}")  
+    print(f"🔍 Тело ответа API (расписание): {response.text}")  
 
+    try:
+        data = response.json()
         if isinstance(data, dict) and "data" in data and "days" in data["data"]:
             schedule_list = []
             for day in data["data"]["days"]:
-                for lesson in day.get("schedule", []):  # Если расписание пустое, не вызывает ошибку
+                print(f"📅 Дата: {day['dateFormat']} → Уроков: {len(day['schedule'])}")
+                for lesson in day["schedule"]:
                     lesson["date"] = day["dateFormat"]
                     schedule_list.append(lesson)
             return schedule_list
-    except requests.exceptions.RequestException as e:
-        print(f"❌ Ошибка при получении расписания: {e}")
     except Exception as e:
-        print(f"❌ Ошибка при разборе JSON (расписание): {e}")
+        print("❌ Ошибка при разборе JSON (расписание):", e)
 
     return []
 
 def get_homework():
     """🔹 Получает домашнее задание с API BilimClass"""
+    response = requests.get(HOMEWORK_URL, headers=HEADERS)
     try:
-        response = requests.get(HOMEWORK_URL, headers=HEADERS)
-        response.raise_for_status()
         data = response.json()
-
+        print("🔍 Ответ API (ДЗ):", data)  
         if isinstance(data, dict) and "data" in data and isinstance(data["data"], list):
             return data["data"]
-    except requests.exceptions.RequestException as e:
-        print(f"❌ Ошибка при получении ДЗ: {e}")
     except Exception as e:
-        print(f"❌ Ошибка при разборе JSON (ДЗ): {e}")
-
+        print("❌ Ошибка при разборе JSON (ДЗ):", e)
     return []
 
 def match_homework(schedule, homeworks):
@@ -68,6 +61,10 @@ def match_homework(schedule, homeworks):
     today = datetime.today().strftime("%d.%m.%Y")
 
     for lesson in schedule:
+        if not isinstance(lesson, dict):
+            print("❌ Ошибка: неверный формат урока", lesson)
+            continue
+        
         lesson_date = lesson.get("date", "Unknown Date")
         subject = lesson.get("subjectName", "Unknown Subject")
 
@@ -94,6 +91,7 @@ def index():
         return "❌ Ошибка: API не вернуло домашнее задание!", 500
 
     schedule_with_hw = match_homework(schedule, homeworks)
+    print("🔍 Расписание с ДЗ:", schedule_with_hw)  
 
     subjects = sorted(set(lesson.get("subjectName", "❌ Без предмета") for lesson in schedule_with_hw if isinstance(lesson, dict)))
 
@@ -105,6 +103,7 @@ def index():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
 
 
 
