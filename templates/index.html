@@ -3,41 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Расписание BilimClass</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Домашние задания</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        select, button {
+            padding: 10px;
+            margin: 10px;
+        }
+        .container {
+            width: 50%;
+            margin: auto;
+            text-align: left;
+        }
+        h2 {
+            color: #333;
+        }
+        .homework {
+            background: #f4f4f4;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body>
 
-    <h1>📚 Выберите предмет</h1>
-    
+    <h1>Выберите предмет</h1>
     <form method="POST">
         <select name="subject">
+            <option value="">Все предметы</option>
             {% for subject in subjects %}
-                <option value="{{ subject }}">{{ subject }}</option>
+            <option value="{{ subject }}" {% if subject == selected_subject %}selected{% endif %}>{{ subject }}</option>
             {% endfor %}
         </select>
         <button type="submit">Показать</button>
     </form>
 
     {% if selected_subject %}
-        <h2>📌 Расписание для: {{ selected_subject }}</h2>
+    <h2>Домашнее задание по предмету: {{ selected_subject }}</h2>
+    <div class="container">
+        {% for hw in homeworks %}
+        <div class="homework">
+            <strong>{{ hw.date }}:</strong> {{ hw.theme }} - {{ hw.body }}
+        </div>
+        {% endfor %}
+    </div>
     {% endif %}
 
-    <ul>
-        {% for lesson in schedule %}
-            <li>
-                <b>📅 {{ lesson.date }}</b><br>
-                <b>📖 {{ lesson.subjectName }}</b><br>
-                <b>📌 Тема:</b> {{ lesson.theme }}<br>
-                <b>📝 ДЗ:</b> {{ lesson.homework }}
-            </li>
+    <h2>Домашнее задание за вчера</h2>
+    <div class="container">
+        {% for hw in homeworks_yesterday %}
+        <div class="homework">
+            <strong>{{ hw.subjectName }}:</strong> {{ hw.theme }} - {{ hw.body }}
+        </div>
+        {% else %}
+        <p>📌 Домашнего задания за вчера нет.</p>
         {% endfor %}
-    </ul>
+    </div>
 
-    <footer>
-        <p>🚀 Made by <b>Krazher220</b></p>
-    </footer>
+    <h2>Домашнее задание за сегодня</h2>
+    <div class="container">
+        {% for hw in homeworks_today %}
+        <div class="homework">
+            <strong>{{ hw.subjectName }}:</strong> {{ hw.theme }} - {{ hw.body }}
+        </div>
+        {% else %}
+        <p>📌 Домашнего задания на сегодня нет.</p>
+        {% endfor %}
+    </div>
+
+    <p>Made by Krazher220</p>
 
 </body>
+</html>
+
 </html>
 
