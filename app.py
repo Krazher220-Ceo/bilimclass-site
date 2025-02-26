@@ -22,11 +22,11 @@ def get_schedule():
     response = requests.get(SCHEDULE_URL, headers=HEADERS)
     try:
         data = response.json()
-        if isinstance(data, dict) and "data" in data:
-            print("✅ Расписание получено:", data["data"])  # Debug
+        print("🔍 Ответ API (расписание):", data)  # ✅ Выводим ответ API
+        if isinstance(data, dict) and "data" in data and isinstance(data["data"], list):
             return data["data"]
     except Exception as e:
-        print("❌ Ошибка при получении расписания:", e)
+        print("❌ Ошибка при разборе JSON (расписание):", e)
     return []
 
 def get_homework():
@@ -34,12 +34,13 @@ def get_homework():
     response = requests.get(HOMEWORK_URL, headers=HEADERS)
     try:
         data = response.json()
-        if isinstance(data, dict) and "data" in data:
-            print("✅ ДЗ получено:", data["data"])  # Debug
+        print("🔍 Ответ API (ДЗ):", data)  # ✅ Выводим ответ API
+        if isinstance(data, dict) and "data" in data and isinstance(data["data"], list):
             return data["data"]
     except Exception as e:
-        print("❌ Ошибка при получении ДЗ:", e)
+        print("❌ Ошибка при разборе JSON (ДЗ):", e)
     return []
+
 
 def match_homework(schedule, homeworks):
     """🔹 Сопоставляет расписание и ДЗ"""
