@@ -92,6 +92,8 @@ def match_homework(schedule, homeworks):
 def index():
     schedule = get_schedule()
     homeworks = get_homework()
+        print(f"📢 Полный ответ API (расписание): {response.json()}")
+
     
     if not schedule:
         return "❌ Ошибка: API не вернуло расписание!", 500
