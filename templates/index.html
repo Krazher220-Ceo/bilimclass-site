@@ -4,58 +4,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Домашнее задание</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; background: #f4f4f4; }
-        .container { width: 50%; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px gray; }
-        h1 { color: #333; }
-        select, button { padding: 10px; margin-top: 10px; font-size: 16px; }
-        .homework { margin-top: 20px; padding: 10px; background: #e3e3e3; border-radius: 5px; }
-        .views { font-size: 18px; color: gray; margin-top: 20px; }
-        .subject-tomorrow { font-size: 16px; color: #555; margin-top: 10px; }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="container">
-        <h1>Выберите предмет</h1>
-        <form method="POST">
-            <select name="subject">
-                {% for subj, has_tomorrow in subject_options.items() %}
-                    <option value="{{ subj }}" {% if subj == subject %}selected{% endif %}>
-                        {{ subj }} {% if has_tomorrow %}(Есть завтра) {% else %}(Нет завтра) {% endif %}
-                    </option>
-                {% endfor %}
-            </select>
-            <button type="submit">Показать</button>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
+        <h1 class="text-2xl font-bold text-center mb-4">Выберите предмет</h1>
+
+        <form method="POST" action="/">
+            <div class="mb-4">
+                <select name="subject" class="w-full p-2 border rounded-lg">
+                    {% for subject, has_tomorrow in subjects.items() %}
+                        <option value="{{ subject }}">{{ subject }} ({{ "Есть завтра" if has_tomorrow else "Нет завтра" }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">Показать</button>
         </form>
 
-        <h2>Домашнее задание на сегодня{% if subject_tomorrow %} (Этот предмет есть завтра) {% else %} (Этого предмета нет завтра) {% endif %}:</h2>
-        <div class="homework">
-            {% if homework_today %}
-                {% for hw in homework_today %}
-                    <p>{{ hw }}</p>
-                {% endfor %}
-            {% else %}
-                <p>Нет домашнего задания.</p>
-            {% endif %}
+        {% if selected_subject %}
+            <div class="mt-6 p-4 border rounded-lg shadow-sm">
+                <h2 class="text-lg font-semibold text-gray-700">Домашнее задание по {{ selected_subject }} ({{ "Есть завтра" if has_tomorrow else "Нет завтра" }}) :</h2>
+                <div class="mt-2 p-3 bg-gray-50 rounded-lg">
+                    {% if homework_today %}
+                        {{ homework_today }}
+                    {% else %}
+                        <p class="text-gray-500">Нет домашнего задания.</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="mt-6 p-4 border rounded-lg shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-700">Домашнее задание на вчера:</h2>
+            <div class="mt-2 p-3 bg-gray-50 rounded-lg">
+                {% if homework_yesterday %}
+                    {{ homework_yesterday }}
+                {% else %}
+                    <p class="text-gray-500">Нет домашнего задания.</p>
+                {% endif %}
+            </div>
         </div>
 
-        <h2>Домашнее задание на вчера:</h2>
-        <div class="homework">
-            {% if homework_yesterday %}
-                {% for hw in homework_yesterday %}
-                    <p>{{ hw }}</p>
-                {% endfor %}
-            {% else %}
-                <p>Нет домашнего задания.</p>
-            {% endif %}
+        <div class="mt-6 p-4 border rounded-lg shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-700">Расписание на завтра</h2>
+            <div class="mt-2 p-3 bg-gray-50 rounded-lg">
+                {% if schedule_tomorrow %}
+                    <ul class="list-disc pl-5">
+                        {% for lesson in schedule_tomorrow %}
+                            <li class="text-gray-700">{{ lesson }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-gray-500">Нет уроков завтра.</p>
+                {% endif %}
+            </div>
         </div>
 
-        <div class="views">
-            <p>👀 Просмотров страницы: {{ views }}</p>
+        <div class="mt-6 text-center text-gray-600">
+            👀 Просмотров страницы: <span id="views">{{ views }}</span>
+        </div>
+
+        <div class="mt-6 text-center">
+            <a href="https://github.com/Krazher220" target="_blank" class="text-blue-500 hover:underline">
+                Made by Krazher220
+            </a>
         </div>
     </div>
 </body>
 </html>
+
 
 
 
