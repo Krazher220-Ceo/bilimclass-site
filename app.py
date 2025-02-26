@@ -99,6 +99,16 @@ def index():
     filtered_schedule = [lesson for lesson in schedule_with_hw if lesson.get("subjectName") == selected_subject] if selected_subject else schedule_with_hw
 
     return render_template("index.html", subjects=subjects, schedule=filtered_schedule, selected_subject=selected_subject)
+    @app.route("/", methods=["GET"])
+    
+def index():
+    schedule = get_schedule()
+    
+    if not schedule:
+        return "📌 Расписание временно недоступно. Проверь позже!", 200
+
+    return render_template("index.html", schedule=schedule)
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
