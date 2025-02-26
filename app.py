@@ -8,55 +8,61 @@ app = Flask(__name__, template_folder="templates")
 # 🔹 API-токен
 TOKEN = os.getenv("TOKEN")
 if not TOKEN:
-    raise ValueError("❌ Ошибка: API-токен отсутствует! Проверь переменные окружения.")
+    raise ValueError("❌ Ошибка: Переменная окружения TOKEN не установлена!")
 
 HEADERS = {"Authorization": f"Bearer {TOKEN}"}
 
 # 🔹 Данные для запроса
 SCHOOL_ID = "1006693"
 EDU_YEAR = "2024"
-STUDENT_SCHOOL_UUID = "9488dd4b-8ccd-44f5-bbf2-6c87a3278c9d"
+STUDENT_GROUP_UUID = "2666df86-ee3e-4d22-aa76-052f3fedf057"  # ✅ Используем правильный UUID
 
-# 🔹 URL для API
-SCHEDULE_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/schedule?schoolId={SCHOOL_ID}&eduYear={EDU_YEAR}&studentSchoolUuid={STUDENT_SCHOOL_UUID}"
-HOMEWORK_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/homeworks/monthly/list?schoolId={SCHOOL_ID}&eduYear={EDU_YEAR}&studentSchoolUuid={STUDENT_SCHOOL_UUID}"
+# 🔹 URL для расписания и ДЗ
+SCHEDULE_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/schedule?schoolId={SCHOOL_ID}&eduYear={EDU_YEAR}&studentGroupUuid={STUDENT_GROUP_UUID}"
+HOMEWORK_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/homeworks/monthly/list?schoolId={SCHOOL_ID}&eduYear={EDU_YEAR}&studentGroupUuid={STUDENT_GROUP_UUID}"
 
 def get_schedule():
     """🔹 Получает расписание с API BilimClass"""
-    response = requests.get(SCHEDULE_URL, headers=HEADERS)
-    if response.status_code != 200:
-        print(f"❌ Ошибка: API вернул код {response.status_code} (расписание)")
-        return []
-
     try:
-        data = response.json().get("data", {})
-        schedule_list = []
-        for day in data.get("days", []):
-            for lesson in day.get("schedule", []):
-                lesson["date"] = day.get("dateFormat", "Неизвестная дата")
-                schedule_list.append(lesson)
-        return schedule_list
+        response = requests.get(SCHEDULE_URL, headers=HEADERS)
+        response.raise_for_status()
+        data = response.json()
+
+        if isinstance(data, dict) and "data" in data and "days" in data["data"]:
+            schedule_list = []
+            for day in data["data"]["days"]:
+                for lesson in day.get("schedule", []):  # Если расписание пустое, не вызывает ошибку
+                    lesson["date"] = day["dateFormat"]
+                    schedule_list.append(lesson)
+            return schedule_list
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Ошибка при получении расписания: {e}")
     except Exception as e:
-        print("❌ Ошибка при разборе JSON (расписание):", e)
-        return []
+        print(f"❌ Ошибка при разборе JSON (расписание): {e}")
+
+    return []
 
 def get_homework():
     """🔹 Получает домашнее задание с API BilimClass"""
-    response = requests.get(HOMEWORK_URL, headers=HEADERS)
-    if response.status_code != 200:
-        print(f"❌ Ошибка: API вернул код {response.status_code} (ДЗ)")
-        return []
-
     try:
-        return response.json().get("data", [])
+        response = requests.get(HOMEWORK_URL, headers=HEADERS)
+        response.raise_for_status()
+        data = response.json()
+
+        if isinstance(data, dict) and "data" in data and isinstance(data["data"], list):
+            return data["data"]
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Ошибка при получении ДЗ: {e}")
     except Exception as e:
-        print("❌ Ошибка при разборе JSON (ДЗ):", e)
-        return []
+        print(f"❌ Ошибка при разборе JSON (ДЗ): {e}")
+
+    return []
 
 def match_homework(schedule, homeworks):
     """🔹 Сопоставляет расписание и ДЗ"""
-    if not schedule or not homeworks:
-        return schedule
+    if not isinstance(schedule, list) or not isinstance(homeworks, list):
+        print("❌ Ошибка: `schedule` или `homeworks` не список!")
+        return []
 
     hw_dict = {hw["date"]: hw for hw in homeworks if "date" in hw and "subjectName" in hw}
     today = datetime.today().strftime("%d.%m.%Y")
@@ -81,7 +87,7 @@ def match_homework(schedule, homeworks):
 def index():
     schedule = get_schedule()
     homeworks = get_homework()
-
+    
     if not schedule:
         return "❌ Ошибка: API не вернуло расписание!", 500
     if not homeworks:
@@ -97,8 +103,9 @@ def index():
     return render_template("index.html", subjects=subjects, schedule=filtered_schedule, selected_subject=selected_subject)
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))  # ✅ Используем 10000 (порт Render)
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
 
 
 
