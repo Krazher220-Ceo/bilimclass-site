@@ -38,7 +38,8 @@ def index():
     if not homeworks:
         return "❌ Ошибка: API не вернуло домашнее задание!", 500
 
-    subjects = sorted(set(hw["subjectName"] for hw in homeworks if "subjectName" in hw))
+    # Создаём словарь с предметами и флагом "есть ли завтра"
+    subjects = {hw["subjectName"]: False for hw in homeworks if "subjectName" in hw}
 
     today = datetime.today().strftime("%d.%m.%Y")
     yesterday = (datetime.today() - timedelta(days=1)).strftime("%d.%m.%Y")
@@ -47,7 +48,17 @@ def index():
     homeworks_yesterday = filter_homework_by_date(homeworks, yesterday)
 
     selected_subject = request.form.get("subject")
-    filtered_homeworks = [hw for hw in homeworks if hw.get("subjectName") == selected_subject] if selected_subject else []
+    filtered_homeworks = [hw["description"] for hw in homeworks if hw.get("subjectName") == selected_subject] if selected_subject else []
+
+    return render_template(
+        "index.html",
+        subjects=subjects,
+        selected_subject=selected_subject,
+        homeworks=filtered_homeworks,
+        homeworks_today=homeworks_today,
+        homeworks_yesterday=homeworks_yesterday
+    )
+
 
     return render_template(
         "index.html",
