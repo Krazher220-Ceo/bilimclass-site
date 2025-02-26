@@ -4,81 +4,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Домашние задания</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
         body {
-            font-family: Arial, sans-serif;
+            background: #f4f7fc;
+            color: #333;
             text-align: center;
+            padding: 20px;
+        }
+        h1, h2 {
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #2c3e50;
         }
         select, button {
             padding: 10px;
             margin: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+        select {
+            width: 300px;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2980b9;
         }
         .container {
-            width: 50%;
+            max-width: 600px;
             margin: auto;
             text-align: left;
         }
-        h2 {
-            color: #333;
-        }
         .homework {
-            background: #f4f4f4;
-            padding: 10px;
+            background: white;
+            padding: 15px;
             margin: 10px 0;
-            border-radius: 5px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .homework strong {
+            color: #e74c3c;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #666;
+        }
+        .footer a {
+            color: #3498db;
+            text-decoration: none;
         }
     </style>
 </head>
 <body>
 
-    <h1>Выберите предмет</h1>
+    <h1>📚 Домашние задания</h1>
     <form method="POST">
         <select name="subject">
-            <option value="">Все предметы</option>
+            <option value="">🔎 Выберите предмет</option>
             {% for subject in subjects %}
-            <option value="{{ subject }}" {% if subject == selected_subject %}selected{% endif %}>{{ subject }}</option>
+            <option value="{{ subject }}" {% if subject == selected_subject %}selected{% endif %}>
+                {{ subject }}
+            </option>
             {% endfor %}
         </select>
         <button type="submit">Показать</button>
     </form>
 
     {% if selected_subject %}
-    <h2>Домашнее задание по предмету: {{ selected_subject }}</h2>
+    <h2>📝 ДЗ по предмету: {{ selected_subject }}</h2>
     <div class="container">
         {% for hw in homeworks %}
         <div class="homework">
             <strong>{{ hw.date }}:</strong> {{ hw.theme }} - {{ hw.body }}
         </div>
+        {% else %}
+        <p>❌ ДЗ по этому предмету не найдено.</p>
         {% endfor %}
     </div>
     {% endif %}
 
-    <h2>Домашнее задание за вчера</h2>
+    <h2>📆 ДЗ за вчера</h2>
     <div class="container">
         {% for hw in homeworks_yesterday %}
         <div class="homework">
             <strong>{{ hw.subjectName }}:</strong> {{ hw.theme }} - {{ hw.body }}
         </div>
         {% else %}
-        <p>📌 Домашнего задания за вчера нет.</p>
+        <p>✅ Домашнего задания за вчера нет.</p>
         {% endfor %}
     </div>
 
-    <h2>Домашнее задание за сегодня</h2>
+    <h2>📆 ДЗ за сегодня</h2>
     <div class="container">
         {% for hw in homeworks_today %}
         <div class="homework">
             <strong>{{ hw.subjectName }}:</strong> {{ hw.theme }} - {{ hw.body }}
         </div>
         {% else %}
-        <p>📌 Домашнего задания на сегодня нет.</p>
+        <p>✅ Домашнего задания на сегодня нет.</p>
         {% endfor %}
     </div>
 
-    <p>Made by Krazher220</p>
+    <p class="footer">Made by <a href="https://github.com/Krazher220-Ceo">Krazher220</a></p>
 
 </body>
 </html>
 
-</html>
 
