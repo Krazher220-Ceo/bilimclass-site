@@ -1,71 +1,70 @@
-import requests
-import os
 from flask import Flask, render_template, request
+import redis
+import requests
 from datetime import datetime, timedelta
 
-app = Flask(__name__, template_folder="templates")
+app = Flask(__name__)
 
-# 🔹 API-токен и заголовки
-TOKEN = os.getenv("TOKEN")
-HEADERS = {"Authorization": f"Bearer {TOKEN}"}
+# Подключение к Redis
+redis_client = redis.Redis.from_url("redis://red-cuvlkblds78s73cndhmg:6379")
 
-# 🔹 Данные для API
+# API для получения домашнего задания
+API_URL = "https://api.bilimclass.kz/api/v4/os/clientoffice/homeworks/monthly/list"
 SCHOOL_ID = "1006693"
 EDU_YEAR = "2024"
 STUDENT_GROUP_UUID = "2666df86-ee3e-4d22-aa76-052f3fedf057"
 
-# 🔹 URL для получения ДЗ
-HOMEWORK_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/homeworks/monthly/list?schoolId={SCHOOL_ID}&eduYear={EDU_YEAR}&studentGroupUuid={STUDENT_GROUP_UUID}"
+# Список предметов
+SUBJECTS = ["Математика", "Физика", "Химия", "Биология"]
 
-def get_homework():
-    """🔹 Получает домашнее задание с API BilimClass"""
-    response = requests.get(HOMEWORK_URL, headers=HEADERS)
+# Функция для получения данных с API
+def get_homework_data():
     try:
-        data = response.json()
-        if isinstance(data, dict) and "data" in data and isinstance(data["data"], list):
-            return data["data"]
-    except Exception as e:
-        print("❌ Ошибка при разборе JSON (ДЗ):", e)
-    return []
+        response = requests.get(f"{API_URL}?schoolId={SCHOOL_ID}&eduYear={EDU_YEAR}&studentGroupUuid={STUDENT_GROUP_UUID}")
+        return response.json()
+    except:
+        return {"homeworks": []}
 
-def filter_homework_by_date(homeworks, date):
-    """🔹 Фильтрует ДЗ по дате"""
-    return [hw for hw in homeworks if hw.get("date") == date]
+# Функция для проверки наличия предмета в расписании
+def is_subject_tomorrow(data, subject):
+    tomorrow = (datetime.today() + timedelta(days=1)).strftime("%Y-%m-%d")
+    return any(hw["subject"] == subject and hw["date"] == tomorrow for hw in data.get("homeworks", []))
+
+# Функция для получения домашнего задания
+def get_homework(data, subject):
+    today = datetime.today().strftime("%Y-%m-%d")
+    yesterday = (datetime.today() - timedelta(days=1)).strftime("%Y-%m-%d")
+
+    homework_today = [hw["homework"] for hw in data.get("homeworks", []) if hw["subject"] == subject and hw["date"] == today]
+    homework_yesterday = [hw["homework"] for hw in data.get("homeworks", []) if hw["subject"] == subject and hw["date"] == yesterday]
+
+    return homework_today, homework_yesterday
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    homeworks = get_homework()
+    data = get_homework_data()
     
-    if not homeworks:
-        return "❌ Ошибка: API не вернуло домашнее задание!", 500
+    subject = request.form.get("subject", "Математика")  # По умолчанию Математика
+    homework_today, homework_yesterday = get_homework(data, subject)
 
-    # 🔹 Получаем список предметов
-    subjects = sorted(set(hw["subjectName"] for hw in homeworks if "subjectName" in hw))
+    # Проверяем, есть ли предмет завтра
+    subject_tomorrow = is_subject_tomorrow(data, subject)
+    
+    # Обновляем список предметов с указанием "Есть завтра" или "Нет завтра"
+    subject_options = {subj: is_subject_tomorrow(data, subj) for subj in SUBJECTS}
 
-    # 🔹 Получаем даты
-    today = datetime.today().strftime("%d.%m.%Y")
-    yesterday = (datetime.today() - timedelta(days=1)).strftime("%d.%m.%Y")
+    # Увеличиваем счётчик просмотров
+    redis_client.incr("page_views")
+    views = redis_client.get("page_views").decode("utf-8")
 
-    # 🔹 Фильтруем ДЗ по дате
-    homeworks_today = filter_homework_by_date(homeworks, today)
-    homeworks_yesterday = filter_homework_by_date(homeworks, yesterday)
-
-    # 🔹 Получаем ДЗ по выбранному предмету
-    selected_subject = request.form.get("subject")
-    filtered_homeworks = [hw for hw in homeworks if hw.get("subjectName") == selected_subject] if selected_subject else []
-
-    return render_template(
-        "index.html",
-        subjects=subjects,
-        selected_subject=selected_subject,
-        homeworks=filtered_homeworks,
-        homeworks_today=homeworks_today,
-        homeworks_yesterday=homeworks_yesterday
-    )
+    return render_template("index.html", subject=subject, subject_tomorrow=subject_tomorrow, 
+                           subject_options=subject_options, homework_today=homework_today, 
+                           homework_yesterday=homework_yesterday, views=views)
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True)
+
+
 
 
 
