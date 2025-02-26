@@ -1,13 +1,15 @@
-from flask import Flask, render_template, request
 import requests
 import os
+from flask import Flask, render_template, request
 from datetime import datetime, timedelta
 
 app = Flask(__name__, template_folder="templates")
 
+# 🔹 Получаем API-токен
 TOKEN = os.getenv("TOKEN")
 HEADERS = {"Authorization": f"Bearer {TOKEN}"}
 
+# 🔹 URL для получения расписания и ДЗ
 SCHOOL_ID = "1006693"
 EDU_YEAR = "2024"
 STUDENT_GROUP_UUID = "2666df86-ee3e-4d22-aa76-052f3fedf057"
@@ -15,34 +17,48 @@ STUDENT_GROUP_UUID = "2666df86-ee3e-4d22-aa76-052f3fedf057"
 SCHEDULE_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/schedule?schoolId={SCHOOL_ID}&eduYear={EDU_YEAR}&studentGroupUuid={STUDENT_GROUP_UUID}"
 HOMEWORK_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/homeworks/monthly/list?schoolId={SCHOOL_ID}&eduYear={EDU_YEAR}&studentGroupUuid={STUDENT_GROUP_UUID}"
 
-
 def get_schedule():
     """🔹 Получает расписание с API BilimClass"""
     response = requests.get(SCHEDULE_URL, headers=HEADERS)
-    if response.status_code == 200:
-        return response.json().get("data", [])
+    try:
+        data = response.json()
+        if isinstance(data, dict) and "data" in data:
+            print("✅ Расписание получено:", data["data"])  # Debug
+            return data["data"]
+    except Exception as e:
+        print("❌ Ошибка при получении расписания:", e)
     return []
-
 
 def get_homework():
     """🔹 Получает домашнее задание с API BilimClass"""
     response = requests.get(HOMEWORK_URL, headers=HEADERS)
-    if response.status_code == 200:
-        return response.json().get("data", [])
+    try:
+        data = response.json()
+        if isinstance(data, dict) and "data" in data:
+            print("✅ ДЗ получено:", data["data"])  # Debug
+            return data["data"]
+    except Exception as e:
+        print("❌ Ошибка при получении ДЗ:", e)
     return []
-
 
 def match_homework(schedule, homeworks):
     """🔹 Сопоставляет расписание и ДЗ"""
-    hw_dict = {hw["date"]: hw for hw in homeworks}  # ДЗ по дате
-    today = datetime.today().strftime("%d.%m.%Y")  # Текущая дата
+    if not isinstance(schedule, list) or not isinstance(homeworks, list):
+        print("❌ Ошибка: `schedule` или `homeworks` не список!")
+        return []
+
+    hw_dict = {hw["date"]: hw for hw in homeworks if "date" in hw and "subjectName" in hw}
+    today = datetime.today().strftime("%d.%m.%Y")
 
     for lesson in schedule:
-        lesson_date = lesson["date"]
-        subject = lesson["subjectName"]
+        if not isinstance(lesson, dict):
+            print("❌ Ошибка: неверный формат урока", lesson)
+            continue
+        
+        lesson_date = lesson.get("date", "Unknown Date")
+        subject = lesson.get("subjectName", "Unknown Subject")
 
         previous_date = (datetime.strptime(lesson_date, "%d.%m.%Y") - timedelta(days=1)).strftime("%d.%m.%Y")
-
         next_date = (datetime.strptime(lesson_date, "%d.%m.%Y") + timedelta(days=1)).strftime("%d.%m.%Y")
 
         if previous_date in hw_dict and hw_dict[previous_date]["subjectName"] == subject:
@@ -54,21 +70,26 @@ def match_homework(schedule, homeworks):
 
     return schedule
 
-
 @app.route("/", methods=["GET", "POST"])
 def index():
     schedule = get_schedule()
     homeworks = get_homework()
+    
+    if not schedule:
+        return "❌ Ошибка: API не вернуло расписание!", 500
+    if not homeworks:
+        return "❌ Ошибка: API не вернуло домашнее задание!", 500
+
     schedule_with_hw = match_homework(schedule, homeworks)
 
-    subjects = sorted(set(lesson["subjectName"] for lesson in schedule_with_hw))
+    subjects = sorted(set(lesson["subjectName"] for lesson in schedule_with_hw if isinstance(lesson, dict)))
 
     selected_subject = request.form.get("subject")
-    filtered_schedule = [lesson for lesson in schedule_with_hw if lesson["subjectName"] == selected_subject] if selected_subject else schedule_with_hw
+    filtered_schedule = [lesson for lesson in schedule_with_hw if lesson.get("subjectName") == selected_subject] if selected_subject else schedule_with_hw
 
     return render_template("index.html", subjects=subjects, schedule=filtered_schedule, selected_subject=selected_subject)
-
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
