@@ -13,8 +13,8 @@
         <form method="POST" action="/">
             <div class="mb-4">
                 <select name="subject" class="w-full p-2 border rounded-lg">
-                    {% for subject, has_tomorrow in subjects.items() %}
-                        <option value="{{ subject }}">{{ subject }} ({{ "Есть завтра" if has_tomorrow else "Нет завтра" }})</option>
+                    {% for subject in subjects %}
+                        <option value="{{ subject }}">{{ subject }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -28,7 +28,7 @@
                     {% if homeworks %}
                         <ul class="list-disc pl-5">
                             {% for hw in homeworks %}
-                                <li class="text-gray-700">{{ hw }}</li>
+                                <li class="text-gray-700">{{ hw.text }}</li>
                             {% endfor %}
                         </ul>
                     {% else %}
@@ -44,7 +44,7 @@
                 {% if homeworks_yesterday %}
                     <ul class="list-disc pl-5">
                         {% for hw in homeworks_yesterday %}
-                            <li class="text-gray-700">{{ hw }}</li>
+                            <li class="text-gray-700">{{ hw.text }}</li>
                         {% endfor %}
                     </ul>
                 {% else %}
@@ -69,7 +69,7 @@
         </div>
 
         <div class="mt-6 text-center text-gray-600">
-            👀 Просмотров страницы: <span id="views">{{ views }}</span>
+            👀 Просмотров страницы: <span id="views">{{ views if views else 0 }}</span>
         </div>
 
         <div class="mt-6 text-center">
@@ -80,6 +80,7 @@
     </div>
 </body>
 </html>
+
 
 
 
