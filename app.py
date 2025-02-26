@@ -15,7 +15,7 @@ EDU_YEAR = "2024"
 STUDENT_SCHOOL_UUID = "9488dd4b-8ccd-44f5-bbf2-6c87a3278c9d"
 
 SCHEDULE_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/schedule?schoolId={SCHOOL_ID}&eduYear={EDU_YEAR}&studentSchoolUuid={STUDENT_SCHOOL_UUID}"
-HOMEWORK_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/homeworks/monthly/list?schoolId={SCHOOL_ID}&eduYear={EDU_YEAR}&studentGroupUuid={STUDENT_GROUP_UUID}"
+HOMEWORK_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/homeworks/monthly/list?schoolId={SCHOOL_ID}&eduYear={EDU_YEAR}&studentGroupUuid={STUDENT_SCHOOL_UUID}"
 
 def get_schedule():
     """🔹 Получает расписание с API BilimClass"""
