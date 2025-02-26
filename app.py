@@ -12,9 +12,9 @@ HEADERS = {"Authorization": f"Bearer {TOKEN}"}
 # 🔹 URL для получения расписания и ДЗ
 SCHOOL_ID = "1006693"
 EDU_YEAR = "2024"
-STUDENT_GROUP_UUID = "2666df86-ee3e-4d22-aa76-052f3fedf057"
+STUDENT_SCHOOL_UUID = "9488dd4b-8ccd-44f5-bbf2-6c87a3278c9d"
 
-SCHEDULE_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/schedule?schoolId={SCHOOL_ID}&eduYear={EDU_YEAR}&studentGroupUuid={STUDENT_GROUP_UUID}"
+SCHEDULE_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/schedule?schoolId={SCHOOL_ID}&eduYear={EDU_YEAR}&studentSchoolUuid={STUDENT_SCHOOL_UUID}"
 HOMEWORK_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/homeworks/monthly/list?schoolId={SCHOOL_ID}&eduYear={EDU_YEAR}&studentGroupUuid={STUDENT_GROUP_UUID}"
 
 def get_schedule():
