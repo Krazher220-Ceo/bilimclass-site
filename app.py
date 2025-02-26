@@ -35,6 +35,9 @@ def index():
 
     return render_template("index.html", subjects=subjects, selected_subject=selected_subject, schedule=schedule)
 
+import os
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))  # Render задаёт порт через ENV
+    app.run(host="0.0.0.0", port=port)
 
