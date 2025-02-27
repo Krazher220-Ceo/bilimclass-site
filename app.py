@@ -13,6 +13,8 @@ SCHOOL_ID = os.getenv("SCHOOL_ID", "1006693")
 EDU_YEAR = os.getenv("EDU_YEAR", "2024")
 STUDENT_GROUP_UUID = os.getenv("STUDENT_GROUP_UUID", "2666df86-ee3e-4d22-aa76-052f3fedf057")
 
+print(f"🔹 Загруженный логин: {USERNAME}, пароль: {PASSWORD}")
+
 LOGIN_URL = "https://api.bilimclass.kz/api/v2/os/login"
 HOMEWORK_URL = f"https://api.bilimclass.kz/api/v4/os/clientoffice/homeworks/monthly/list?schoolId={SCHOOL_ID}&eduYear={EDU_YEAR}&studentGroupUuid={STUDENT_GROUP_UUID}"
 
